@@ -1,0 +1,18 @@
+@font-face {
+	font-family: Jetbrains Mono;
+	src: url(JetBrainsMono-Regular.woff2);
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	background-color: #15161d;
+}
+
+#terminal-container {
+	height: 100vh;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+}
