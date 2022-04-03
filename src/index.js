@@ -6,7 +6,7 @@ const os = require('os');
 const pty = require('node-pty');
 
 const app = express();
-expressWs(app);
+const wsServer = expressWs(app);
 
 app.use('/:id/vendor/xterm', express.static(path.join(__dirname, '/../node_modules/xterm')));
 app.use('/:id/vendor/xterm-addon-attach', express.static(path.join(__dirname, '/../node_modules/xterm-addon-attach')));
@@ -41,6 +41,8 @@ term.onExit(() => {
 	}, 500);
 });
 
+let exitTimeout = null;
+
 app.post('/:id/size', (req, res) => {
 	const cols = parseInt(req.query.cols);
 	const rows = parseInt(req.query.rows);
@@ -51,7 +53,11 @@ app.post('/:id/size', (req, res) => {
 });
 
 app.ws('/:id/ws', function (ws, req) {
-	console.log('Connected to terminal ' + term.pid);
+	console.log('connected');
+	if (exitTimeout) {
+		// cancel the exit timeout since someone is connected.
+		clearTimeout(exitTimeout);
+	}
 	ws.send(log);
 
 	term.onData((data) => {
@@ -77,6 +83,17 @@ app.ws('/:id/ws', function (ws, req) {
 
 	ws.on('message', function (msg) {
 		term.write(msg);
+	});
+
+	ws.on('close', function () {
+		// Wait for 10 minutes before exiting
+		if (wsServer.getWss().clients.size === 0) {
+			console.log('exit in 10min');
+			exitTimeout = setTimeout(() => {
+				console.log('exit now');
+				process.exit(0);
+			}, 1000 * 60 * 10);
+		}
 	});
 });
 
