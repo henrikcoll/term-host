@@ -19,6 +19,10 @@ app.get('/:id', (req, res) => {
 	res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
+app.get('/:id/status', (req, res) => {
+	res.status(200).send('ok');
+});
+
 term.onData(function (data) {
 	log += data;
 });
