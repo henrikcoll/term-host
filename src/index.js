@@ -27,14 +27,6 @@ io.on('connection', socket => {
 	exitTimeout.stop();
 	socket.emit('termData', log);
 
-	socket.on('disconnect', async () => {
-		// Close the server once everyone has disconnected
-		let sockets = await io.fetchSockets();
-		if (sockets.length === 0) {
-			exitTimeout.start();
-		}
-	});
-
 	socket.on('termData', data => {
 		term.write(data);
 	});
@@ -67,3 +59,11 @@ app.post('/:id/size', (req, res) => {
 });
 
 server.listen(3000, '0.0.0.0');
+
+// If no one is connected, start exitTimeout.
+setInterval(async () => {
+	let sockets = await io.fetchSockets();
+	if (sockets.length === 0) {
+		exitTimeout.start();
+	}
+}, 1000);
